@@ -1,5 +1,12 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
+const jwt = require('jsonwebtoken')
+
+require('dotenv').config()
+
+const { TOKEN_SECRET } = process.env;
+
+console.log(TOKEN_SECRET)
 
 async function register(nombre, email, password) {
     const passwordHash = await bcrypt.hash(
@@ -13,13 +20,14 @@ async function register(nombre, email, password) {
             [email, passwordHash, nombre]
         ); */
 
-    return {
-        id: 0,
-        nombre,
-        email,
-        password,
-        passwordHash
-    };
+    return crearToken({ nombre, email, id: result.insertId })
+
+}
+
+function crearToken(usuario) {
+    const token = jwt.sign(usuario, TOKEN_SECRET)
+
+    console.log(token)
 }
 
 module.exports = { register };

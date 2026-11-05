@@ -1,13 +1,26 @@
 const servicios = require("../services/auth_service")
+const zod = require('zod')
+
+function validarDatos() {
+
+}
 
 async function register(req, res, next) {
-    const { nombre, email, pass } = req.body;
+    try {
+        const { nombre, email, pass } = req.body;
+        const response = await servicios.register(nombre, email, pass)
+        console.log(response)
+        res.send("papa")
 
-    const response = await servicios.register(nombre, email, pass)
 
-    console.log(response)
 
-    res.send("papa")
+    } catch (error) {
+        console.error(error)
+        res.send("ocurrio un error")
+    }
+
+
+
 }
 
 module.exports = { register }
