@@ -20,7 +20,9 @@ async function register(nombre, email, password) {
             [email, passwordHash, nombre]
         ); */
 
-    return crearToken({ nombre, email, id: result.insertId })
+    // return crearToken({ nombre, email, id: result.insertId })
+
+    return (email, password, nombre)
 
 }
 

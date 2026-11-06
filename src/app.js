@@ -7,7 +7,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-const frontendUrl = process.env.FRONTEND_URL;
+const frontendUrl = process.env.FRONTEND_URL_xd;
 
 app.use(helmet());
 app.use(cors({ origin: frontendUrl }));

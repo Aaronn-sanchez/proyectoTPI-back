@@ -10,9 +10,7 @@ async function register(req, res, next) {
         const { nombre, email, pass } = req.body;
         const response = await servicios.register(nombre, email, pass)
         console.log(response)
-        res.send("papa")
-
-
+        res.send("los datos llegaron")
 
     } catch (error) {
         console.error(error)
