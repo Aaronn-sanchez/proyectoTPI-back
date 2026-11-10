@@ -54,4 +54,8 @@ async function me(req, res) {
     res.json({ usuario: req.user });
 }
 
-module.exports = { register, login, me };
+async function qaCheck(req, res) {
+    res.json({ mensaje: 'Acceso QA concedido', usuario: req.user });
+}
+
+module.exports = { register, login, me, qaCheck };

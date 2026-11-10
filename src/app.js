@@ -16,4 +16,8 @@ app.use('/api/auth', authRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+app.listen(3000, () => {
+  console.log('El servidor está corriendo en el puerto 3000');
+});
+
 module.exports = app;
