@@ -2,12 +2,10 @@
   "name": "jueguito-back",
   "version": "1.0.0",
   "description": "API REST para El Camino del Humedal",
-  "main": "src/app.js",
-  "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
-    "test": "jest --runInBand --passWithNoTests"
-  },
+"scripts": {
+  "dev": "nodemon src/server.js",
+  "start": "node src/server.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -3,12 +3,12 @@ const zod = require('zod');
 
 const registerSchema = zod.object({
     nombre: zod.string().trim().min(1),
-    email: zod.string().email(),
+    email: zod.email().toLowerCase(),
     pass: zod.string().min(8).max(72), // bcrypt ignora lo que pase de 72 bytes
 });
 
 const loginSchema = zod.object({
-    email: zod.string().email(),
+    email: zod.email().toLowerCase(),
     pass: zod.string().min(1),
 });
 
