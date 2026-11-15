@@ -1,3 +1,4 @@
+const config = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -17,16 +18,19 @@ app.use(cors({ origin: frontendUrl }));
 
 app.use(express.json({ limit: '1mb' }));
 app.use('/api/auth', authRoutes);
+app.use('/api/logros', require('./routes/logros_routes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'API de El Camino del Humedal' });
 });
 
+
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(3000, () => {
-  console.log(`API escuchando en http://localhost:${3000}`);
-});
+const PORT = process.env.PORT || 3000;
+
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
