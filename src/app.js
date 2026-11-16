@@ -1,4 +1,5 @@
-const config = require('dotenv');
+const dotenv = require('dotenv');
+dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/logros', require('./routes/logros_routes'));
+app.use('/api/niveles', require('./routes/niveles_routes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'API de El Camino del Humedal' });
