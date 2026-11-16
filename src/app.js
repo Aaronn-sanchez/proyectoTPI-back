@@ -7,10 +7,9 @@ const authRoutes = require('./routes/auth_routes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
-
 const app = express();
 
-const frontendUrl = process.env.FRONTEND_URL;
+const frontendUrl = process.env.FRONTEND_URL_xd;
 
 app.use(helmet());
 app.use(cors());
@@ -26,14 +25,9 @@ app.get('/', (req, res) => {
 
 app.use(notFound);
 app.use(errorHandler);
-<<<<<<< HEAD
-app.listen(3000, () => {
-  console.log('Servidor corriendo en el puerto 3000');
-=======
 
 app.listen(3000, () => {
   console.log('El servidor está corriendo en el puerto 3000');
->>>>>>> develop-solange
 });
 
 module.exports = app;
