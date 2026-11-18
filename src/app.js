@@ -18,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/logros', require('./routes/logros_routes'));
 app.use('/api/niveles', require('./routes/niveles_routes'));
+app.use('/api/configuracion', require('./routes/configuracion_routes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'API de El Camino del Humedal' });

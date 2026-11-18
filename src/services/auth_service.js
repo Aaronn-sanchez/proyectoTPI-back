@@ -5,10 +5,9 @@ const db = require('../config/database');
 
 const { TOKEN_SECRET } = process.env;
 const ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
-const ROL_USUARIO = 1;
+const ROL_USUARIO = Number(process.env.ROL_USUARIO) || 1;
 const ROL_QA = Number(process.env.ROL_QA) || 2;
 
-// Hash falso para que el login tarde lo mismo cuando el email no existe
 const DUMMY_HASH = bcrypt.hashSync('dummy-password', ROUNDS);
 
 function crearError(status, mensaje) {
@@ -17,23 +16,20 @@ function crearError(status, mensaje) {
     return error;
 }
 
-
 function crearToken(usuario) {
     return jwt.sign(usuario, TOKEN_SECRET, {
         expiresIn: process.env.TOKEN_EXPIRES_IN || '15m',
     });
 }
 
-// Arma la respuesta igual para registro y login
 function armarRespuesta(usuario) {
     return {
         usuario,
-        esQA: usuario.rol === ROL_QA,
+        esQA: usuario.roles.includes(ROL_QA),
         token: crearToken(usuario),
     };
 }
 
-// Los roles viven en USUARIO_ROLES (un usuario puede tener varios)
 async function obtenerRoles(idUsuario) {
     const [rows] = await db.execute(
         'SELECT id_rol FROM USUARIO_ROLES WHERE id_usuario = ?',
@@ -50,20 +46,15 @@ async function register(nombre, email, password) {
         await conn.beginTransaction();
 
         const [result] = await conn.execute(
-            `INSERT INTO USUARIOS (email, password_hash, nombre_usuario)
-             VALUES (?, ?, ?)`,
+            `INSERT INTO USUARIOS
+             (email, password_hash, nombre_usuario, estado)
+             VALUES (?, ?, ?, 1)`,
             [email, passwordHash, nombre]
         );
 
-        // El registro SIEMPRE crea usuarios comunes
         await conn.execute(
             'INSERT INTO USUARIO_ROLES (id_usuario, id_rol) VALUES (?, ?)',
             [result.insertId, ROL_USUARIO]
-        );
-
-        await conn.execute(
-            'INSERT IGNORE INTO CONFIGURACION_USUARIO (id_usuario) VALUES (?)',
-            [result.insertId]
         );
 
         await conn.commit();
@@ -74,9 +65,11 @@ async function register(nombre, email, password) {
         ));
     } catch (error) {
         await conn.rollback();
+
         if (error.code === 'ER_DUP_ENTRY') {
             throw crearError(409, 'El email ya está registrado');
         }
+
         throw error;
     } finally {
         conn.release();
@@ -85,25 +78,37 @@ async function register(nombre, email, password) {
 
 async function login(email, password) {
     const [rows] = await db.execute(
-        `SELECT id_usuario, nombre_usuario, email, password_hash
+        `SELECT id_usuario, nombre_usuario, email, password_hash, estado
          FROM USUARIOS WHERE email = ?`,
         [email]
     );
 
     const user = rows[0];
-
-    const valido = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
+    const valido = await bcrypt.compare(
+        password,
+        user ? user.password_hash : DUMMY_HASH
+    );
 
     if (!user || !valido) {
         throw crearError(401, 'Credenciales inválidas');
     }
 
+    if (!user.estado) {
+        throw crearError(403, 'La cuenta está inactiva');
+    }
+
     const roles = await obtenerRoles(user.id_usuario);
+
     return armarRespuesta(armarUsuario(user, roles));
 }
 
 function armarUsuario(fila, roles) {
-    return { id: fila.id_usuario, nombre: fila.nombre_usuario, email: fila.email, roles };
+    return {
+        id: fila.id_usuario,
+        nombre: fila.nombre_usuario,
+        email: fila.email,
+        roles,
+    };
 }
 
 async function actualizarNombre(idUsuario, nombre) {
@@ -116,12 +121,14 @@ async function actualizarNombre(idUsuario, nombre) {
         'SELECT id_usuario, nombre_usuario, email FROM USUARIOS WHERE id_usuario = ?',
         [idUsuario]
     );
+
     if (!rows.length) {
         throw crearError(404, 'Usuario inexistente');
     }
 
-    // Roles frescos de la base, no los del token viejo
-    return armarRespuesta(armarUsuario(rows[0], await obtenerRoles(idUsuario)));
+    return armarRespuesta(
+        armarUsuario(rows[0], await obtenerRoles(idUsuario))
+    );
 }
 
 async function eliminarCuenta(idUsuario) {
@@ -129,12 +136,17 @@ async function eliminarCuenta(idUsuario) {
         'UPDATE USUARIOS SET estado = 0 WHERE id_usuario = ?',
         [idUsuario]
     );
+
     if (result.affectedRows === 0) {
         throw crearError(404, 'Usuario inexistente');
     }
+
     return { mensaje: 'Cuenta eliminada correctamente' };
 }
 
-
-
-module.exports = { register, login, actualizarNombre, eliminarCuenta };
+module.exports = {
+    register,
+    login,
+    actualizarNombre,
+    eliminarCuenta,
+};
