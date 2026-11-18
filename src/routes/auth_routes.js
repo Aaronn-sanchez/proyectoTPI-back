@@ -7,7 +7,11 @@ const ROL_QA = Number(process.env.ROL_QA) || 2;
 
 router.post('/register', controller.register);
 router.post('/login', controller.login);
+
 router.get('/me', auth, controller.me);
+router.patch('/me', auth, controller.actualizarNombre);
+router.delete('/me', auth, controller.eliminarCuenta);
+
 router.get('/qa/check', auth, soloRol(ROL_QA), controller.qaCheck);
 
 module.exports = router;
