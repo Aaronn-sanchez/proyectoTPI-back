@@ -126,7 +126,7 @@ async function actualizarNombre(idUsuario, nombre) {
 
 async function eliminarCuenta(idUsuario) {
     const [result] = await db.execute(
-        'DELETE FROM USUARIOS WHERE id_usuario = ?',
+        'UPDATE USUARIOS SET estado = 0 WHERE id_usuario = ?',
         [idUsuario]
     );
     if (result.affectedRows === 0) {
