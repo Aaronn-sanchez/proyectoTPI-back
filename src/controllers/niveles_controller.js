@@ -2,7 +2,7 @@ const servicios = require('../services/niveles_service');
 const zod = require('zod');
 
 const nivelSchema = zod.object({
-    id_nivel: zod.number().int().min(1),
+    id_nivel: zod.number().int().min(0),
 });
 
 function responderError(res, error) {

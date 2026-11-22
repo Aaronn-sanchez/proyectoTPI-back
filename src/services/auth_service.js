@@ -2,6 +2,7 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
+const { obtenerServicios } = require('./permisos_service');
 
 const { TOKEN_SECRET } = process.env;
 const ROUNDS = Number(process.env.BCRYPT_ROUNDS) || 10;
@@ -9,6 +10,7 @@ const ROL_USUARIO = Number(process.env.ROL_USUARIO) || 1;
 const ROL_QA = Number(process.env.ROL_QA) || 2;
 
 const DUMMY_HASH = bcrypt.hashSync('dummy-password', ROUNDS);
+
 
 function crearError(status, mensaje) {
     const error = new Error(mensaje);
@@ -22,10 +24,11 @@ function crearToken(usuario) {
     });
 }
 
-function armarRespuesta(usuario) {
+function armarRespuesta(usuario, servicios = []) {
     return {
         usuario,
         esQA: usuario.roles.includes(ROL_QA),
+        servicios,
         token: crearToken(usuario),
     };
 }
@@ -98,8 +101,8 @@ async function login(email, password) {
     }
 
     const roles = await obtenerRoles(user.id_usuario);
-
-    return armarRespuesta(armarUsuario(user, roles));
+    const servicios = await obtenerServicios(user.id_usuario);
+    return armarRespuesta(armarUsuario(user, roles), servicios);
 }
 
 function armarUsuario(fila, roles) {
@@ -127,7 +130,8 @@ async function actualizarNombre(idUsuario, nombre) {
     }
 
     return armarRespuesta(
-        armarUsuario(rows[0], await obtenerRoles(idUsuario))
+        armarUsuario(rows[0], await obtenerRoles(idUsuario)),
+        await obtenerServicios(idUsuario)
     );
 }
 
