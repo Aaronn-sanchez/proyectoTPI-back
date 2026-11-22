@@ -4,8 +4,15 @@ const { obtenerRolEditable, crearError } = require('./roles_service');
 // Panel izquierdo: usuarios activos en orden alfabético, con sus roles configurables
 async function listar() {
     const [usuarios] = await db.execute(
-        `SELECT id_usuario, nombre_usuario AS nombre, email
-         FROM USUARIOS WHERE estado = 1 ORDER BY nombre_usuario`
+        `SELECT u.id_usuario, u.nombre_usuario AS nombre, u.email
+         FROM USUARIOS u
+         WHERE u.estado = 1
+           AND NOT EXISTS (
+               SELECT 1 FROM USUARIO_ROLES ur
+               WHERE ur.id_usuario = u.id_usuario AND ur.id_rol = ?
+           )
+         ORDER BY u.nombre_usuario`,
+        [ROL_QA]
     );
     const [asignados] = await db.execute(
         `SELECT ur.id_usuario, r.id_rol, r.nombre_rol
@@ -20,9 +27,16 @@ async function listar() {
     }));
 }
 
+
 async function validarUsuario(idUsuario) {
     const [rows] = await db.execute(
-        'SELECT 1 FROM USUARIOS WHERE id_usuario = ? AND estado = 1', [idUsuario]
+        `SELECT 1 FROM USUARIOS u
+         WHERE u.id_usuario = ? AND u.estado = 1
+           AND NOT EXISTS (
+               SELECT 1 FROM USUARIO_ROLES ur
+               WHERE ur.id_usuario = u.id_usuario AND ur.id_rol = ?
+           )`,
+        [idUsuario, ROL_QA]
     );
     if (!rows.length) throw crearError(404, 'Usuario inexistente');
 }
@@ -61,4 +75,11 @@ async function quitarRol(idUsuario, idRol) {
     return listarRoles(idUsuario);
 }
 
-module.exports = { listar, listarRoles, asignarRol, quitarRol };
+async function deshabilitar(idUsuario) {
+    await validarUsuario(idUsuario);
+    await db.execute('UPDATE USUARIOS SET estado = 0 WHERE id_usuario = ?', [idUsuario]);
+    if (r.affectedRows === 0) throw crearError(404, 'Usuario inexistente');
+    return { mensaje: 'Cuenta deshabilitada' };
+}
+
+module.exports = { listar, listarRoles, asignarRol, quitarRol, deshabilitar };

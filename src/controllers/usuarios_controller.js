@@ -20,6 +20,12 @@ const asignarRol = manejar(async (req, res) => {
     res.status(201).json(await servicios.asignarRol(id, datos.data.id_rol));
 });
 
+const deshabilitar = manejar(async (req, res) => {
+    const id = leerId(req.params.id);
+    if (!id) return invalido(res);
+    res.json(await servicios.deshabilitar(id));
+});
+
 const quitarRol = manejar(async (req, res) => {
     const id = leerId(req.params.id);
     const idRol = leerId(req.params.idRol);
@@ -27,4 +33,4 @@ const quitarRol = manejar(async (req, res) => {
     res.json(await servicios.quitarRol(id, idRol));
 });
 
-module.exports = { listar, listarRoles, asignarRol, quitarRol };
+module.exports = { listar, listarRoles, asignarRol, quitarRol, deshabilitar };

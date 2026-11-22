@@ -9,5 +9,6 @@ router.get('/', c.listar);
 router.get('/:id/roles', c.listarRoles);
 router.post('/:id/roles', c.asignarRol);
 router.delete('/:id/roles/:idRol', c.quitarRol);
+router.delete('/:id', c.deshabilitar);
 
 module.exports = router;
