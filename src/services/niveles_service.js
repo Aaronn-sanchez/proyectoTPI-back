@@ -1,6 +1,6 @@
 const db = require('../config/database');
 
-const TOTAL_NIVELES = Number(process.env.TOTAL_NIVELES) || 4;
+const TOTAL_NIVELES = Number(process.env.TOTAL_NIVELES);
 
 function crearError(status, mensaje) {
     const error = new Error(mensaje);
