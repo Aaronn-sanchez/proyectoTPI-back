@@ -1,6 +1,8 @@
 const db = require('../config/database');
 const { obtenerRolEditable, crearError } = require('./roles_service');
 
+const ROL_QA = Number(process.env.ROL_QA) || 2;
+
 // Panel izquierdo: usuarios activos en orden alfabético, con sus roles configurables
 async function listar() {
     const [usuarios] = await db.execute(
@@ -26,7 +28,6 @@ async function listar() {
             .map(({ id_rol, nombre_rol }) => ({ id_rol, nombre_rol })),
     }));
 }
-
 
 async function validarUsuario(idUsuario) {
     const [rows] = await db.execute(
@@ -69,7 +70,8 @@ async function quitarRol(idUsuario, idRol) {
     await validarUsuario(idUsuario);
     await obtenerRolEditable(db, idRol);
     const [r] = await db.execute(
-        'DELETE FROM USUARIO_ROLES WHERE id_usuario = ? AND id_rol = ?', [idUsuario, idRol]
+        'DELETE FROM USUARIO_ROLES WHERE id_usuario = ? AND id_rol = ?',
+        [idUsuario, idRol]
     );
     if (r.affectedRows === 0) throw crearError(404, 'El usuario no tiene ese rol');
     return listarRoles(idUsuario);
@@ -77,7 +79,10 @@ async function quitarRol(idUsuario, idRol) {
 
 async function deshabilitar(idUsuario) {
     await validarUsuario(idUsuario);
-    await db.execute('UPDATE USUARIOS SET estado = 0 WHERE id_usuario = ?', [idUsuario]);
+    const [r] = await db.execute(
+        'UPDATE USUARIOS SET estado = 0 WHERE id_usuario = ?',
+        [idUsuario]
+    );
     if (r.affectedRows === 0) throw crearError(404, 'Usuario inexistente');
     return { mensaje: 'Cuenta deshabilitada' };
 }

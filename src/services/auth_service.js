@@ -18,6 +18,23 @@ function crearError(status, mensaje) {
     return error;
 }
 
+async function obtenerPerfil(idUsuario) {
+    const [rows] = await db.execute(
+        'SELECT id_usuario, nombre_usuario, email, estado FROM USUARIOS WHERE id_usuario = ?',
+        [idUsuario]
+    );
+    if (!rows.length || !rows[0].estado) {
+        throw crearError(401, 'Cuenta inexistente o inactiva');
+    }
+    const roles = await obtenerRoles(idUsuario);
+    const servicios = await obtenerServicios(idUsuario);
+    return {
+        usuario: armarUsuario(rows[0], roles),
+        esQA: roles.includes(ROL_QA),
+        servicios,
+    };
+}
+
 function crearToken(usuario) {
     return jwt.sign(usuario, TOKEN_SECRET, {
         expiresIn: process.env.TOKEN_EXPIRES_IN,
@@ -153,4 +170,5 @@ module.exports = {
     login,
     actualizarNombre,
     eliminarCuenta,
+    obtenerPerfil
 };

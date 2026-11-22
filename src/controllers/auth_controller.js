@@ -69,7 +69,11 @@ async function actualizarNombre(req, res) {
 }
 
 async function me(req, res) {
-    res.json({ usuario: req.user });
+    try {
+        res.json(await servicios.obtenerPerfil(req.user.id));
+    } catch (error) {
+        responderError(res, error);
+    }
 }
 
 async function qaCheck(req, res) {
