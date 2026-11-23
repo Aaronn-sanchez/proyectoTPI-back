@@ -37,7 +37,11 @@ async function obtenerPerfil(idUsuario) {
 
 function crearToken(usuario) {
     return jwt.sign(usuario, TOKEN_SECRET, {
+<<<<<<< HEAD
+        expiresIn: process.env.TOKEN_EXPIRES_IN || '30m',
+=======
         expiresIn: process.env.TOKEN_EXPIRES_IN,
+>>>>>>> origin/main
     });
 }
 
