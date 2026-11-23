@@ -1,6 +1,11 @@
 const db = require('../config/database');
+const { tieneServicio } = require('./permisos_service');
 
-const TOTAL_NIVELES = Number(process.env.TOTAL_NIVELES) || 4;
+// Id del último nivel. Tutorial = 0 y 4 niveles más => vale 4 (ids 0 a 4).
+const TOTAL_NIVELES = Number(process.env.TOTAL_NIVELES);
+if (!Number.isInteger(TOTAL_NIVELES) || TOTAL_NIVELES < 1) {
+    throw new Error('TOTAL_NIVELES inválido o ausente en el .env');
+}
 
 function crearError(status, mensaje) {
     const error = new Error(mensaje);
@@ -13,7 +18,7 @@ function calcularNivelActual(filas) {
     const completados = new Set(
         filas.filter((f) => f.completado).map((f) => f.id_nivel)
     );
-    for (let n = 1; n <= TOTAL_NIVELES; n++) {
+    for (let n = 0; n <= TOTAL_NIVELES; n++) {
         if (!completados.has(n)) return n;
     }
     return null;
@@ -28,46 +33,30 @@ async function obtenerProgreso(idUsuario) {
 
     const nivelActual = calcularNivelActual(filas);
     const estado = new Map(filas.map((f) => [f.id_nivel, Boolean(f.completado)]));
+    const desbloquearTodo = await tieneServicio(idUsuario, 'desbloquear_niveles');
 
     const niveles = [];
-    for (let n = 1; n <= TOTAL_NIVELES; n++) {
+    for (let n = 0; n <= TOTAL_NIVELES; n++) {
         niveles.push({
             id_nivel: n,
             completado: estado.get(n) === true,
             iniciado: estado.has(n),
-            desbloqueado: nivelActual === null || n <= nivelActual,
+            desbloqueado: desbloquearTodo || nivelActual === null || n <= nivelActual,
         });
     }
 
     return { nivelActual, juegoCompletado: nivelActual === null, niveles };
 }
 
-async function tienePermiso(idUsuario, clave) {
-    const [rows] = await db.execute(
-        `SELECT 1
-         FROM USUARIO_ROLES ur
-         JOIN ROL_SERVICIOS rs ON rs.id_rol = ur.id_rol
-         JOIN SERVICIOS s ON s.id_servicio = rs.id_servicio
-         WHERE ur.id_usuario = ? AND s.clave = ?
-         LIMIT 1`,
-        [idUsuario, clave]
-    );
-    return rows.length > 0;
-}
-
-// Valida que el nivel exista y que el jugador ya lo tenga desbloqueado
+// Valida que el nivel exista y que el jugador lo tenga desbloqueado
+// (usa la misma regla que el mapa, incluido el permiso desbloquear_niveles)
 async function validarAcceso(idUsuario, idNivel) {
     if (idNivel > TOTAL_NIVELES) {
         throw crearError(404, 'Nivel inexistente');
     }
 
-    // Quien tenga este permiso puede entrar a cualquier nivel
-    if (await tienePermiso(idUsuario, 'desbloquear_niveles')) {
-        return;
-    }
-
-    const { nivelActual } = await obtenerProgreso(idUsuario);
-    if (nivelActual !== null && idNivel > nivelActual) {
+    const { niveles } = await obtenerProgreso(idUsuario);
+    if (!niveles[idNivel].desbloqueado) {
         throw crearError(403, 'Nivel bloqueado: completá el anterior primero');
     }
 }
@@ -91,10 +80,17 @@ async function iniciar(idUsuario, idNivel) {
 async function completar(idUsuario, idNivel) {
     await validarAcceso(idUsuario, idNivel);
 
+    // Solo se puede completar un nivel que el jugador entró a jugar
+    const [filas] = await db.execute(
+        'SELECT 1 FROM PROGRESO_NIVELES WHERE id_usuario = ? AND id_nivel = ?',
+        [idUsuario, idNivel]
+    );
+    if (!filas.length) {
+        throw crearError(409, 'Tenés que iniciar el nivel antes de completarlo');
+    }
+
     await db.execute(
-        `INSERT INTO PROGRESO_NIVELES (id_usuario, id_nivel, completado)
-         VALUES (?, ?, 1)
-         ON DUPLICATE KEY UPDATE completado = 1`,
+        'UPDATE PROGRESO_NIVELES SET completado = 1 WHERE id_usuario = ? AND id_nivel = ?',
         [idUsuario, idNivel]
     );
 

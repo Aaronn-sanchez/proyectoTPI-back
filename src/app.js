@@ -20,15 +20,15 @@ app.use('/api/logros', require('./routes/logros_routes'));
 app.use('/api/niveles', require('./routes/niveles_routes'));
 app.use('/api/configuracion', require('./routes/configuracion_routes'));
 
+app.use('/api/roles', require('./routes/roles_routes'));
+app.use('/api/servicios', require('./routes/servicios_routes'));
+app.use('/api/usuarios', require('./routes/usuarios_routes'));
+
 app.get('/', (req, res) => {
   res.json({ message: 'API de El Camino del Humedal' });
 });
 
 app.use(notFound);
 app.use(errorHandler);
-
-app.listen(3000, () => {
-  console.log('El servidor está corriendo en el puerto 3000');
-});
 
 module.exports = app;
