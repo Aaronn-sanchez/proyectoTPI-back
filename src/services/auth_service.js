@@ -18,7 +18,7 @@ function crearError(status, mensaje) {
 
 function crearToken(usuario) {
     return jwt.sign(usuario, TOKEN_SECRET, {
-        expiresIn: process.env.TOKEN_EXPIRES_IN || '15m',
+        expiresIn: process.env.TOKEN_EXPIRES_IN || '30m',
     });
 }
 
