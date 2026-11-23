@@ -24,6 +24,8 @@ app.use('/api/roles', require('./routes/roles_routes'));
 app.use('/api/servicios', require('./routes/servicios_routes'));
 app.use('/api/usuarios', require('./routes/usuarios_routes'));
 
+app.use('/api/checkpoint', require('./routes/checkpoint_routes'));
+
 app.get('/', (req, res) => {
   res.json({ message: 'API de El Camino del Humedal' });
 });
