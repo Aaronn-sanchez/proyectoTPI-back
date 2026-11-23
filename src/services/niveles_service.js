@@ -1,7 +1,7 @@
 const db = require('../config/database');
 const { tieneServicio } = require('./permisos_service');
 
-// Último id de nivel. Con el tutorial en 0 y 5 niveles más, vale 5.
+// Id del último nivel. Tutorial = 0 y 4 niveles más => vale 4 (ids 0 a 4).
 const TOTAL_NIVELES = Number(process.env.TOTAL_NIVELES);
 if (!Number.isInteger(TOTAL_NIVELES) || TOTAL_NIVELES < 1) {
     throw new Error('TOTAL_NIVELES inválido o ausente en el .env');
@@ -80,10 +80,17 @@ async function iniciar(idUsuario, idNivel) {
 async function completar(idUsuario, idNivel) {
     await validarAcceso(idUsuario, idNivel);
 
+    // Solo se puede completar un nivel que el jugador entró a jugar
+    const [filas] = await db.execute(
+        'SELECT 1 FROM PROGRESO_NIVELES WHERE id_usuario = ? AND id_nivel = ?',
+        [idUsuario, idNivel]
+    );
+    if (!filas.length) {
+        throw crearError(409, 'Tenés que iniciar el nivel antes de completarlo');
+    }
+
     await db.execute(
-        `INSERT INTO PROGRESO_NIVELES (id_usuario, id_nivel, completado)
-         VALUES (?, ?, 1)
-         ON DUPLICATE KEY UPDATE completado = 1`,
+        'UPDATE PROGRESO_NIVELES SET completado = 1 WHERE id_usuario = ? AND id_nivel = ?',
         [idUsuario, idNivel]
     );
 
