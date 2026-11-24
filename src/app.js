@@ -28,6 +28,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'API de El Camino del Humedal' });
 });
 
+app.use('/api/configuracion', require('./routes/configuracion_routes'));
 app.use(notFound);
 app.use(errorHandler);
 

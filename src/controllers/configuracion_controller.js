@@ -1,13 +1,14 @@
 const servicios = require('../services/configuracion_service');
 const zod = require('zod');
 
+// Al menos un campo, y cada uno dentro de su rango
 const configuracionSchema = zod
     .object({
         volumen_musica: zod.number().int().min(0).max(100).optional(),
         idioma: zod.number().int().min(0).max(1).optional(),
     })
     .refine((datos) => Object.keys(datos).length > 0);
-    
+
 const perfilSchema = zod.object({
     nombre: zod.string().trim().min(1).max(30),
 });
@@ -20,6 +21,7 @@ function responderError(res, error) {
     res.status(500).json({ error: 'Error interno del servidor' });
 }
 
+// Convierte el :id de la dirección en número (o null si no es válido)
 function leerId(req) {
     const id = Number(req.params.id);
     return Number.isInteger(id) && id >= 1 ? id : null;

@@ -142,7 +142,6 @@ async function aplicarPerfil(idUsuario, idPerfil) {
     return obtener(idUsuario);
 }
 
-// La X: borra el perfil. Si era el activo, la config vuelve a los valores por defecto.
 async function borrarPerfil(idUsuario, idPerfil) {
     const [resultado] = await db.execute(
         'DELETE FROM CONFIGURACION_PERFILES WHERE id_perfil = ? AND id_usuario = ?',
