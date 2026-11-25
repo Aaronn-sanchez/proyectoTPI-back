@@ -87,4 +87,14 @@ async function deshabilitar(idUsuario) {
     return { mensaje: 'Cuenta deshabilitada' };
 }
 
-module.exports = { listar, listarRoles, asignarRol, quitarRol, deshabilitar };
+// Cambia el nombre de otro usuario 
+async function renombrar(idUsuario, nombre) {
+    await validarUsuario(idUsuario);
+    await db.execute(
+        'UPDATE USUARIOS SET nombre_usuario = ? WHERE id_usuario = ?',
+        [nombre, idUsuario]
+    );
+    return { id_usuario: idUsuario, nombre };
+}
+
+module.exports = { listar, listarRoles, asignarRol, quitarRol, deshabilitar, renombrar };

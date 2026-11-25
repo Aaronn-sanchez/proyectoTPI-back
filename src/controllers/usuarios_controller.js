@@ -32,5 +32,13 @@ const quitarRol = manejar(async (req, res) => {
     if (!id || !idRol) return invalido(res);
     res.json(await servicios.quitarRol(id, idRol));
 });
+const nombreSchema = zod.object({ nombre: zod.string().trim().min(1).max(50) });
 
-module.exports = { listar, listarRoles, asignarRol, quitarRol, deshabilitar };
+const renombrar = manejar(async (req, res) => {
+    const id = leerId(req.params.id);
+    const datos = nombreSchema.safeParse(req.body);
+    if (!id || !datos.success) return invalido(res);
+    res.json(await servicios.renombrar(id, datos.data.nombre));
+});
+
+module.exports = { listar, listarRoles, asignarRol, quitarRol, deshabilitar, renombrar };
