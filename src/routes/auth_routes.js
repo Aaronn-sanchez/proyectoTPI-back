@@ -5,7 +5,6 @@ const requiereServicio = require('../middleware/requiereServicio');
 
 router.post('/register', controller.register);
 router.post('/login', controller.login);
-
 router.get('/me', auth, controller.me);
 router.patch('/me', auth, controller.actualizarNombre);
 router.delete('/me', auth, controller.eliminarCuenta);

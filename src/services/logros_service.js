@@ -6,6 +6,8 @@ function crearError(status, mensaje) {
     return error;
 }
 
+
+
 // LA VISTA: todos los logros con el progreso de este jugador
 async function listar(idUsuario) {
     const [rows] = await db.execute(
